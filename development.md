@@ -4,7 +4,7 @@ Create derived `ConfigMap`s and `manifests-all.yaml`:
 
 ```bash
 # Create ConfigMap with Grafana dashboards and datasources
-kubectl --namespace monitoring create configmap --dry-run grafana-import-dashboards \
+oc --namespace monitoring create configmap --dry-run grafana-import-dashboards \
   --from-file=configs/grafana \
   --output yaml \
     > ./manifests/grafana/import-dashboards/configmap.yaml
@@ -12,7 +12,7 @@ kubectl --namespace monitoring create configmap --dry-run grafana-import-dashboa
 echo "  namespace: monitoring" >> ./manifests/grafana/import-dashboards/configmap.yaml
 
 # Create ConfigMap with Prometheus config
-kubectl --namespace monitoring create configmap --dry-run prometheus-core \
+oc --namespace monitoring create configmap --dry-run prometheus-core \
   --from-file=configs/prometheus \
   --output yaml \
     > ./manifests/prometheus/configmap.yaml

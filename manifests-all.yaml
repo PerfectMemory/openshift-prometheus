@@ -1,12 +1,6 @@
-# Derived from ./manifests
 ---
 apiVersion: v1
-kind: Namespace
-metadata:
-  name: monitoring
----
-apiVersion: extensions/v1beta1
-kind: Deployment
+kind: DeploymentConfig
 metadata:
   name: grafana-core
   namespace: monitoring
@@ -21,6 +15,7 @@ spec:
         app: grafana
         component: core
     spec:
+      nodeSelector: {"region":"infra"}
       containers:
       - image: grafana/grafana:4.1.1
         name: grafana-core
@@ -1925,6 +1920,7 @@ spec:
           }
         ]'
     spec:
+      nodeSelector: {"region":"infra"}
       containers:
       - name: grafana-import-dashboards
         image: giantswarm/tiny-tools
@@ -1945,8 +1941,9 @@ spec:
             for file in *-dashboard.json ; do
               if [ -e "$file" ] ; then
                 echo "importing $file" &&
-                cat "$file" \
-                | xargs -0 printf '{"dashboard":%s,"overwrite":true,"inputs":[{"name":"DS_PROMETHEUS","type":"datasource","pluginId":"prometheus","value":"prometheus"}]}' \
+                ( echo '{"dashboard":'; \
+                  cat "$file"; \
+                  echo ',"overwrite":true,"inputs":[{"name":"DS_PROMETHEUS","type":"datasource","pluginId":"prometheus","value":"prometheus"}]}' ) \
                 | jq -c '.' \
                 | curl --silent --fail --show-error \
                   --request POST http://admin:admin@grafana:3000/api/dashboards/import \
@@ -1965,15 +1962,18 @@ spec:
         configMap:
           name: grafana-import-dashboards
 ---
-apiVersion: extensions/v1beta1
-kind: Ingress
+apiVersion: v1
+kind: Route
 metadata:
   name: grafana
   namespace: monitoring
 spec:
-  backend:
-    serviceName: grafana
-    servicePort: 3000
+  port:
+    targetPort: 3000
+  to:
+    kind: Service
+    name: grafana
+    weight: 100
 ---
 apiVersion: v1
 kind: Service
@@ -2099,8 +2099,8 @@ metadata:
   name: prometheus-core
   namespace: monitoring
 ---
-apiVersion: extensions/v1beta1
-kind: Deployment
+apiVersion: v1
+kind: DeploymentConfig
 metadata:
   name: prometheus-core
   namespace: monitoring
@@ -2116,6 +2116,7 @@ spec:
         app: prometheus
         component: core
     spec:
+      nodeSelector: {"region":"infra"}
       containers:
       - name: prometheus
         image: prom/prometheus:v1.5.0
@@ -2141,10 +2142,10 @@ spec:
         configMap:
           name: prometheus-core
 ---
-apiVersion: extensions/v1beta1
-kind: Deployment
+apiVersion: v1
+kind: DeploymentConfig
 metadata:
-  name: kube-state-metrics-deployment
+  name: kube-state-metrics
   namespace: monitoring
 spec:
   replicas: 1
@@ -2154,6 +2155,7 @@ spec:
         app: kube-state-metrics
         version: "v0.3.0"
     spec:
+      nodeSelector: {"region":"infra"}
       containers:
       - name: kube-state-metrics
         image: gcr.io/google_containers/kube-state-metrics:v0.3.0
@@ -2176,7 +2178,6 @@ spec:
     protocol: TCP
   selector:
     app: kube-state-metrics
-    
 ---
 apiVersion: extensions/v1beta1
 kind: DaemonSet
@@ -2266,7 +2267,7 @@ spec:
         component: node-exporter
     spec:
       containers:
-      - image: prom/node-exporter:0.12.0
+      - image: prom/node-exporter:v0.13.0
         name: prometheus-node-exporter
         ports:
         - name: prom-node-exp

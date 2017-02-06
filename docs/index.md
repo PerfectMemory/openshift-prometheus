@@ -1,6 +1,6 @@
 +++
 title = "Monitoring with Prometheus and Grafana"
-description = "Recipe to spin up a monitoring setup with Prometheus and Grafana on Kubernetes."
+description = "Recipe to spin up a monitoring setup with Prometheus and Grafana on Openshift."
 date = "2017-02-01"
 type = "page"
 weight = 100
@@ -20,7 +20,7 @@ Prometheus can also visualize your data. However, in this recipe we include anot
 The following command will set you up with all neccesary components and some first dashboards to check out.
 
 ```bash
-kubectl apply --filename https://raw.githubusercontent.com/giantswarm/kubernetes-prometheus/master/manifests-all.yaml
+oc apply --filename https://raw.githubusercontent.com/giantswarm/kubernetes-prometheus/master/manifests-all.yaml
 ```
 
 ## Checking Prometheus
@@ -58,8 +58,8 @@ You can now checkout the included dashboards, e.g. the [Cluster Monitoring Overv
 _Note:_ If persistent storage is not set up in your cluster, the preset datasource and dashboards will vanish if the Grafana Pod gets rescheduled. To get them back run:
 
 ```nohighlight
-kubectl --namespace=monitoring delete job grafana-import-dashboards
-kubectl --namespace=monitoring create --filename https://raw.githubusercontent.com/giantswarm/kubernetes-prometheus/master/manifests/grafana/import-dashboards/job.yaml
+oc --namespace=monitoring delete job grafana-import-dashboards
+oc --namespace=monitoring create --filename https://raw.githubusercontent.com/giantswarm/kubernetes-prometheus/master/manifests/grafana/import-dashboards/job.yaml
 ```
 
 ## Next Steps

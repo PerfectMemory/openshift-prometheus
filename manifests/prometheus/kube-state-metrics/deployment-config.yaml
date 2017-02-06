@@ -1,5 +1,5 @@
-apiVersion: extensions/v1beta1
-kind: Deployment
+apiVersion: v1
+kind: DeploymentConfig
 metadata:
   name: kube-state-metrics
   namespace: monitoring
@@ -11,6 +11,7 @@ spec:
         app: kube-state-metrics
         version: "v0.3.0"
     spec:
+      nodeSelector: {"region":"infra"}
       containers:
       - name: kube-state-metrics
         image: gcr.io/google_containers/kube-state-metrics:v0.3.0
